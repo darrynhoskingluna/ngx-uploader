@@ -78,7 +78,6 @@ export class NgFileDropDirective implements OnInit, OnDestroy {
     if (!e) {
       return;
     }
-
     const event: UploadOutput = { type: 'dragOut' };
     this.uploadOutput.emit(event);
   }

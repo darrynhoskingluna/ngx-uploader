@@ -3,21 +3,21 @@
   "version": "7.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bleenco/ngx-uploader.git"
+    "url": "git+https://github.com/darrynhoskingluna/ngx-uploader.git"
   },
   "authors": [
-    "Jan Kuri <jkuri88@gmail.com>"
+    "Darryn Hosking <darryn@lunasoft.co.za>"
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bleenco/ngx-uploader/issues"
+    "url": "https://github.com/darrynhoskingluna/ngx-uploader/issues"
   },
   "homepage": "http://ngx-uploader.com",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:prod": "ng build ngx-uploader && ng build ngx-uploader-demo --prod && tsc -p tsconfig.api.json",
+    "build:prod": "ng build ngx-uploader --prod",
     "test": "ng test ngx-uploader",
     "lint": "ng lint",
     "e2e": "ng e2e",

@@ -1,10 +1,10 @@
 # ngx-uploader
 
-[![AbstruseCI](https://ci.bleenco.io/badge/11)](https://ci.bleenco.io/repo/11)
-
 Angular 6 File Uploader
 
 http://ngx-uploader.com
+
+#### This is a fork of the original project, it removes the xhr and replaces it with a function that can be passed in for greater control of the upload process
 
 #### <a name="question"></a> Got a Question or Problem?
 

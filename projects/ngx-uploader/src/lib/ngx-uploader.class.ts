@@ -16,13 +16,14 @@ export function humanizeBytes(bytes: number): string {
 }
 
 export class NgUploaderService {
-  queue: UploadFile[];
-  serviceEvents: EventEmitter<UploadOutput>;
-  uploadScheduler: Subject<{ file: UploadFile, event: UploadInput }>;
-  subs: { id: string, sub: Subscription }[];
-  contentTypes: string[];
-  maxUploads: number;
-
+  public queue: UploadFile[];
+  public serviceEvents: EventEmitter<UploadOutput>;
+  public uploadScheduler: Subject<{ file: UploadFile, event: UploadInput }>;
+  public subs: { id: string, sub: Subscription }[];
+  public contentTypes: string[];
+  public maxUploads: number;
+  
+  
   constructor(concurrency: number = Number.POSITIVE_INFINITY, contentTypes: string[] = ['*'], maxUploads: number = Number.POSITIVE_INFINITY) {
     this.queue = [];
     this.serviceEvents = new EventEmitter<UploadOutput>();
@@ -136,118 +137,43 @@ export class NgUploaderService {
         }, () => {
           observer.complete();
         });
-
       this.subs.push({ id: upload.file.id, sub: sub });
     });
   }
 
   uploadFile(file: UploadFile, event: UploadInput): Observable<UploadOutput> {
     return new Observable(observer => {
-      const url = event.url || '';
-      const method = event.method || 'POST';
-      const data = event.data || {};
-      const headers = event.headers || {};
-
-      const xhr = new XMLHttpRequest();
       const time: number = new Date().getTime();
       let progressStartTime: number = (file.progress.data && file.progress.data.startTime) || time;
-      let speed = 0;
       let eta: number | null = null;
 
-      xhr.upload.addEventListener('progress', (e: ProgressEvent) => {
-        if (e.lengthComputable) {
-          const percentage = Math.round((e.loaded * 100) / e.total);
-          const diff = new Date().getTime() - time;
-          speed = Math.round(e.loaded / diff * 1000);
-          progressStartTime = (file.progress.data && file.progress.data.startTime) || new Date().getTime();
-          eta = Math.ceil((e.total - e.loaded) / speed);
-
-          file.progress = {
-            status: UploadStatus.Uploading,
-            data: {
-              percentage: percentage,
-              speed: speed,
-              speedHuman: `${humanizeBytes(speed)}/s`,
-              startTime: progressStartTime,
-              endTime: null,
-              eta: eta,
-              etaHuman: this.secondsToHuman(eta)
-            }
-          };
-
-          observer.next({ type: 'uploading', file: file });
+      event.uploadFunction(file.nativeFile).then((response) => {
+        const speedAverage = Math.round(file.size / (new Date().getTime() - progressStartTime) * 1000);
+        file.progress = {
+          status: UploadStatus.Done,
+          data: {
+            percentage: 100,
+            speed: speedAverage,
+            speedHuman: `${humanizeBytes(speedAverage)}/s`,
+            startTime: progressStartTime,
+            endTime: new Date().getTime(),
+            eta: eta,
+            etaHuman: this.secondsToHuman(eta || 0)
+          }
+        };
+        
+        try {
+          file.response = JSON.parse(response);
+        } catch (e) {
+          file.response = response;
         }
-      }, false);
-
-      xhr.upload.addEventListener('error', (e: Event) => {
+        observer.next({ type: 'done', file: file });
+        observer.complete();
+      }).catch((e) => {
         observer.error(e);
         observer.complete();
-      });
+      });      
 
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-          const speedAverage = Math.round(file.size / (new Date().getTime() - progressStartTime) * 1000);
-          file.progress = {
-            status: UploadStatus.Done,
-            data: {
-              percentage: 100,
-              speed: speedAverage,
-              speedHuman: `${humanizeBytes(speedAverage)}/s`,
-              startTime: progressStartTime,
-              endTime: new Date().getTime(),
-              eta: eta,
-              etaHuman: this.secondsToHuman(eta || 0)
-            }
-          };
-
-          file.responseStatus = xhr.status;
-
-          try {
-            file.response = JSON.parse(xhr.response);
-          } catch (e) {
-            file.response = xhr.response;
-          }
-
-          file.responseHeaders = this.parseResponseHeaders(xhr.getAllResponseHeaders());
-
-          observer.next({ type: 'done', file: file });
-
-          observer.complete();
-        }
-      };
-
-      xhr.open(method, url, true);
-      xhr.withCredentials = event.withCredentials ? true : false;
-
-      try {
-        const uploadFile = <BlobFile>file.nativeFile;
-        const uploadIndex = this.queue.findIndex(outFile => outFile.nativeFile === uploadFile);
-
-        if (this.queue[uploadIndex].progress.status === UploadStatus.Cancelled) {
-          observer.complete();
-        }
-
-        Object.keys(headers).forEach(key => xhr.setRequestHeader(key, headers[key]));
-
-        let bodyToSend;
-
-        if (event.includeWebKitFormBoundary !== false) {
-          Object.keys(data).forEach(key => file.form.append(key, data[key]));
-          file.form.append(event.fieldName || 'file', uploadFile, uploadFile.name);
-          bodyToSend = file.form;
-        } else {
-          bodyToSend = uploadFile;
-        }
-
-        this.serviceEvents.emit({ type: 'start', file: file });
-        xhr.send(bodyToSend);
-      } catch (e) {
-        observer.complete();
-      }
-
-      return () => {
-        xhr.abort();
-      };
     });
   }
 
@@ -288,8 +214,7 @@ export class NgUploaderService {
       id: this.generateId(),
       name: file.name,
       size: file.size,
-      type: file.type,
-      form: new FormData(),
+      type: file.type,      
       progress: {
         status: UploadStatus.Queue,
         data: {
@@ -306,18 +231,5 @@ export class NgUploaderService {
       sub: undefined,
       nativeFile: file
     };
-  }
-
-  private parseResponseHeaders(httpHeaders: ByteString) {
-    if (!httpHeaders) {
-      return;
-    }
-    return httpHeaders.split('\n')
-      .map(x => x.split(/: */, 2))
-      .filter(x => x[0])
-      .reduce((ac, x) => {
-        ac[x[0]] = x[1];
-        return ac;
-      }, {});
   }
 }

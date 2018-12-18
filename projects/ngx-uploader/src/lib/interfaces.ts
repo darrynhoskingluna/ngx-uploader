@@ -37,7 +37,6 @@ export interface UploadFile {
   name: string;
   size: number;
   type: string;
-  form: FormData;
   progress: UploadProgress;
   response?: any;
   responseStatus?: number;
@@ -55,14 +54,9 @@ export interface UploadOutput {
 
 export interface UploadInput {
   type: 'uploadAll' | 'uploadFile' | 'cancel' | 'cancelAll' | 'remove' | 'removeAll';
-  url?: string;
-  method?: string;
   id?: string;
   fieldName?: string;
   fileIndex?: number;
   file?: UploadFile;
-  data?: { [key: string]: string | Blob };
-  headers?: { [key: string]: string };
-  includeWebKitFormBoundary?: boolean; // If false, only the file is send trough xhr.send (WebKitFormBoundary is omit)
-  withCredentials?: boolean;
+  uploadFunction: (file:File) => Promise<any>; 
 }

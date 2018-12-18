@@ -4,14 +4,14 @@
   "homepage": "https://ngx-uploader.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bleenco/ngx-uploader.git"
+    "url": "git+https://github.com/darrynhoskingluna/ngx-uploader.git"
   },
   "authors": [
-    "Jan Kuri <jkuri88@gmail.com>"
+    "Darryn Hosking <darryn@lunasoft.co.za>"
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bleenco/ngx-uploader/issues"
+    "url": "https://github.com/darrynhoskingluna/ngx-uploader/issues"
   },
   "peerDependencies": {
     "@angular/common": "^7.0.0",

@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\projects",
+    "\\projects\\ngx-uploader",
+    "\\projects\\ngx-uploader\\src",
+    "\\projects\\ngx-uploader\\src\\lib",
+    "\\src\\api",
+    "\\src\\environments",
+    "\\src\\styles"
+  ],
+  "SelectedNode": "\\projects\\ngx-uploader\\src\\lib\\ngx-uploader.class.ts",
+  "PreviewInSolutionExplorer": false
+}
